@@ -345,6 +345,15 @@
                 content: '❞';
             }
         }
+
+        &--hyperlink {
+            float: left;
+            width: 40px;
+            height: 42px;
+            background: $pickled-bluewood url(../../img/sprite.png) no-repeat 0px -175px;
+            background-size: 30px auto;
+            margin: 10.5px 0 0 20px;
+        }
     }
 
     &__line-numbers {

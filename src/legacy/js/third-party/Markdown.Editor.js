@@ -1081,7 +1081,7 @@
         // in multiple functions.
         var dialog;         // The dialog box.
         var input;         // The text box where you enter the hyperlink.
-
+        var check;
 
         if (defaultInputText === undefined) {
             defaultInputText = "";
@@ -1151,6 +1151,10 @@
             style.textAlign = "center";
             style.position = "relative";
             dialog.appendChild(form);
+          
+            check = doc.createElement("input");
+            check.type = "checkbox";
+            form.appendChild(check);
 
             // The input text box
             input = doc.createElement("input");
@@ -1488,6 +1492,7 @@
             buttons.bold = makeButton("wmd-bold-button", getString("bold"), "0px", bindCommand("doBold"));
             buttons.italic = makeButton("wmd-italic-button", getString("italic"), "-20px", bindCommand("doItalic"));
             // makeSpacer(1); // Not needed for our editor
+            //
             buttons.link = makeButton("wmd-link-button", getString("link"), "-40px", bindCommand(function (chunk, postProcessing) {
                 return this.doLinkOrImage(chunk, postProcessing, false);
             }));
@@ -1758,6 +1763,7 @@
         });
     }
 
+    // 
     commandProto.doLinkOrImage = function (chunk, postProcessing, isImage) {
 
         chunk.trimWhitespace();
