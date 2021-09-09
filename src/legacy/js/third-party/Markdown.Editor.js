@@ -1082,6 +1082,7 @@
         var dialog;         // The dialog box.
         var input;         // The text box where you enter the hyperlink.
         var check;
+        var checkLabel;
 
         if (defaultInputText === undefined) {
             defaultInputText = "";
@@ -1113,10 +1114,11 @@
                 text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
                 if (!/^(?:https?|ftp):\/\//.test(text))
                     text = 'http://' + text;
+                if (check.value == "on")
+                    text = text.replace(/.*\/\/[^\/]*/, '')
             }
 
             dialog.parentNode.removeChild(dialog);
-
             callback(text);
             return false;
         };
@@ -1151,10 +1153,23 @@
             style.textAlign = "center";
             style.position = "relative";
             dialog.appendChild(form);
-          
+
             check = doc.createElement("input");
+            check.id = "internal";
             check.type = "checkbox";
+            style = check.style;
+            style.float = "left";
+            style.margin = "0px";
+            style.marginLeft = "45px";
             form.appendChild(check);
+
+            checkLabel = document.createElement('label');
+            checkLabel.innerHTML = "Internal";    
+            checkLabel.htmlFor = "internal";
+            style = checkLabel.style;
+            style.marginLeft = "20px";
+            style.textAlign = "initial";
+            form.appendChild(checkLabel);
 
             // The input text box
             input = doc.createElement("input");
