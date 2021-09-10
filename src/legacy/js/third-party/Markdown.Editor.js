@@ -1150,7 +1150,6 @@
             style.margin = "0";
             style.cssFloat = "left";
             style.width = "100%";
-            style.textAlign = "center";
             style.position = "relative";
             dialog.appendChild(form);
 
@@ -1168,7 +1167,6 @@
             checkLabel.htmlFor = "internal";
             style = checkLabel.style;
             style.marginLeft = "20px";
-            style.textAlign = "initial";
             form.appendChild(checkLabel);
 
             // The input text box
@@ -1202,8 +1200,13 @@
             style.display = "inline";
             style.width = "7em";
 
-            form.appendChild(okButton);
-            form.appendChild(cancelButton);
+            var div = doc.createElement("div");
+            style = div.style;
+            style.textAlign = "center";
+
+            div.appendChild(okButton);
+            div.appendChild(cancelButton)
+            form.appendChild(div);
 
             util.addEvent(doc.body, "keyup", checkEscape);
             dialog.style.top = "50%";
