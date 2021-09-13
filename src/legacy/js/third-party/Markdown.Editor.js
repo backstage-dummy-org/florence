@@ -1188,7 +1188,10 @@
             style.margin = "10px";
             style.display = "inline";
             style.width = "7em";
-
+            style.border = "1px solid #888888";
+            style.fontFamily = "trebuchet MS, helvetica, sans-serif";
+            style.fontSize = "0.8em";
+            style.fontWeight = "bold";
 
             // The cancel button
             var cancelButton = doc.createElement("input");
@@ -1199,6 +1202,10 @@
             style.margin = "10px";
             style.display = "inline";
             style.width = "7em";
+            style.border = "1px solid #888888";
+            style.fontFamily = "trebuchet MS, helvetica, sans-serif";
+            style.fontSize = "0.8em";
+            style.fontWeight = "bold";
 
             var div = doc.createElement("div");
             style = div.style;
