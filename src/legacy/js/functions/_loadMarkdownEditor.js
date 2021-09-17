@@ -102,12 +102,6 @@ function loadMarkdownEditor(content, onSave, pageData, notEmpty) {
         });
     });
 
-    $("#js-editor--hyperlink").click(function () {
-        loadEditIntLinks(function(markdown) {
-            onInsertSave('', markdown)
-        });
-    });
-
     $("#wmd-input").on('click', function () {
         markDownEditorSetLines();
     });
