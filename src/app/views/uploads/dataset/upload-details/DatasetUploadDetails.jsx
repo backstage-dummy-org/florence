@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router";
-import { connect } from "react-redux";
 import { push } from "react-router-redux";
-
 import Resumable from "resumeablejs";
 import recipes from "../../../../utilities/api-clients/recipes";
 import datasetImport from "../../../../utilities/api-clients/datasetImport";
@@ -426,11 +424,11 @@ const DatasetUploadController = props => {
         setActiveDataset(activeDatasetFiles);
     };
 
-    const renderFileInputs = () => {      
+    const renderFileInputs = () => {
         if (activeDataset) {
             return;
         }
-          
+
         return activeDataset.files.map((file, index) => {
             return (
                 <FileUpload
@@ -615,11 +613,5 @@ DatasetUploadController.propTypes = {
     }).isRequired,
 };
 
-const mapStateToProps = state => {
-    return {
-        datasets: state.state.datasets.all,
-        jobs: state.state.datasets.jobs,
-    };
-};
 
-export default connect(mapStateToProps)(DatasetUploadController);
+export default DatasetUploadController;
