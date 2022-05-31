@@ -138,7 +138,9 @@ func websocketHandler(serviceVersion string) func(w http.ResponseWriter, req *ht
 					log.Event(req.Context(), "error unmarshalling websocket message", log.WARN, log.Error(err), log.Data{"data": string(eventData)})
 					continue
 				}
-				log.Event(req.Context(), "client log", log.INFO, log.Data{"data": e})
+
+				//println(string(message))
+				log.Event(req.Context(), "client log", log.INFO, log.Data{"message": string(message)})
 
 				err = c.WriteJSON(florenceServerEvent{"ack", eventID})
 				if err != nil {

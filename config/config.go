@@ -38,7 +38,7 @@ func Get() (*Config, error) {
 	}
 
 	cfg = &Config{
-		BindAddr:                   ":8080",
+		BindAddr:                   ":8081",
 		APIRouterURL:               "http://localhost:23200",
 		APIRouterVersion:           "v1",
 		FrontendRouterURL:          "http://localhost:20000",

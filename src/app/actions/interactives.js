@@ -1,5 +1,8 @@
 import * as types from "./actionTypes";
 import Interactives from "../utilities/api-clients/interactives";
+import Collections from "../utilities/api-clients/collections";
+
+const collectionId = "collection2-06fab8cfbbc73552484b7beccbec15cf759c66b4ce7d37d4dd40b3ff6eca29ea"
 
 export function setInteractives(interactives) {
     return {
@@ -97,6 +100,8 @@ export function createInteractive(data) {
         try {
             const res = await Interactives.store(data);
             dispatch(storeInteractive(res.data));
+            const collRes = await Collections.addInteractive(collectionId, res.data.id)
+
             dispatch(
                 setSuccessMessage({
                     type: "create",

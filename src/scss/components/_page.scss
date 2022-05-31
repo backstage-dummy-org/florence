@@ -140,6 +140,11 @@
             content: 'RE';
         }
     }
+    &--interactive {
+            &:after {
+                content: 'IN';
+            }
+        }
     &--visualisation {
         &:after {
             content: 'VIS';

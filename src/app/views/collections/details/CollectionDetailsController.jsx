@@ -436,16 +436,17 @@ export class CollectionDetailsController extends Component {
         this.props.dispatch(push(collectionURL));
 
         const deletePageRequest = () => {
-            if (deletedPage.type === "dataset_details") {
+            if (deletedPage.type === "interactive") {
+                return collections.removeInteractive(collectionID, deletedPage.id, collectionContent);
+            } else if (deletedPage.type === "dataset_details") {
                 return collections.removeDataset(collectionID, deletedPage.id, collectionContent);
-            }
-            if (deletedPage.type === "dataset_version") {
+            } else if (deletedPage.type === "dataset_version") {
                 return collections.removeDatasetVersion(collectionID, deletedPage.datasetID, deletedPage.edition, deletedPage.version);
-            }
-            if (this.props.enableDatasetImport) {
+            } else if (this.props.enableDatasetImport) {
                 return collections.deletePageIncludingDatasetImport(collectionID, deletedPage.uri);
+            } else {
+                return collections.deletePage(collectionID, deletedPage.uri);
             }
-            return collections.deletePage(collectionID, deletedPage.uri);
         };
 
         const triggerPageDelete = () => {
