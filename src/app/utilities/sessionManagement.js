@@ -234,7 +234,7 @@ export default class sessionManagement {
         const timerInterval = new Date(sessionExpiryTime) - nowInUTC;
         let diffInSeconds = Math.round(timerInterval / 1000);
         if (isNaN(diffInSeconds)) {
-            throw new Error("encounted an error checking time interval: diffInSeconds is NaN");
+            return true;
         }
         if (diffInSeconds <= 0) {
             return true;
