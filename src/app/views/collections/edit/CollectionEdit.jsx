@@ -107,6 +107,11 @@ class CollectionEdit extends Component {
         }
     }
 
+    getTeamsToSelect = () => {
+        let filteredTeams = this.props.allTeams.filter(team => !(team.id == "role-admin" || team.id == "role-publisher"));
+        return filteredTeams ? filteredTeams.map(team => ({ ...team, disabled: this.props.activeCollection.teams.includes(team) })) : [];
+    };
+
     render() {
         return (
             <div className="drawer__container">
@@ -136,7 +141,7 @@ class CollectionEdit extends Component {
                             <Select
                                 id="collection-edit-teams"
                                 label="Select a team(s) that can view this collection"
-                                contents={this.props.allTeams}
+                                contents={this.getTeamsToSelect()}
                                 defaultOption={this.props.isFetchingAllTeams ? "Loading teams..." : "Select an option"}
                                 selectedOption="default-option"
                                 onChange={this.handleTeamSelection}

@@ -161,22 +161,14 @@ const CreateNewCollection = props => {
     };
 
     const mapStateToPostBody = () => {
-        return isEnablePermissionsAPI
-            ? {
-                  name: newCollection.name.value,
-                  type: newCollection.type,
-                  publishDate: makePublishDate(),
-                  collectionOwner: props.user.userType,
-                  releaseUri: newCollection.scheduleType === "calender-entry-schedule" ? newCollection.release.uri : null,
-              }
-            : {
-                  name: newCollection.name.value,
-                  type: newCollection.type,
-                  publishDate: makePublishDate(),
-                  teams: makeTeams(),
-                  collectionOwner: props.user.userType,
-                  releaseUri: newCollection.scheduleType === "calender-entry-schedule" ? newCollection.release.uri : null,
-              };
+        return {
+            name: newCollection.name.value,
+            type: newCollection.type,
+            publishDate: makePublishDate(),
+            teams: makeTeams(),
+            collectionOwner: props.user.userType,
+            releaseUri: newCollection.scheduleType === "calender-entry-schedule" ? newCollection.release.uri : null,
+        };
     };
 
     const handleSubmit = e => {
@@ -238,7 +230,10 @@ const CreateNewCollection = props => {
         setIsSubmitting(false);
     };
 
-    const getTeamsToSelect = () => (props.teams ? props.teams.map(team => ({ ...team, disabled: newCollection.teams.includes(team) })) : []);
+    const getTeamsToSelect = () => {
+        let filteredTeams = props.teams.filter(team => !(team.id == "role-admin" || team.id == "role-publisher"));
+        return filteredTeams ? filteredTeams.map(team => ({ ...team, disabled: newCollection.teams.includes(team) })) : [];
+    };
 
     const releaseTypeRadioData = [
         {
