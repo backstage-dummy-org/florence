@@ -7,6 +7,7 @@ import notifications from "../notifications";
 import log from "../logging/log";
 import sessionManagement from "../sessionManagement";
 import { errCodes as errorCodes, errCodes } from "../errorCodes";
+import { removeAuthState, setAuthState } from "../auth";
 
 export default class user {
     static get(email) {
@@ -162,6 +163,11 @@ export default class user {
         return http.delete("/tokens/self", true, true);
     }
 
+    // This is a temporary fix for 925: Login fails after going from new login to old login
+    static deleteCookies() {
+        return http.delete("/cookies");
+    }
+
     static getOldUserType(user) {
         // TAKEN FROM OLD FLORENCE
         if (user.admin) {
@@ -190,28 +196,33 @@ export default class user {
     }
 
     static setUserState(user) {
+        setAuthState(user);
         const email = user.email;
         const role = this.getUserRole(user.admin, user.editor);
         const isAdmin = !!user.admin;
         store.dispatch(userLoggedIn(email, role, isAdmin));
-        localStorage.setItem("loggedInAs", email);
-
-        // Store the user type in localStorage. Used in old Florence
-        // where views can depend on user type. e.g. Browse tree
-        localStorage.setItem("userType", this.getOldUserType(user));
     }
 
     static logOut() {
         function clearCookies() {
             const accessTokenCookieRemoved = cookies.remove("access_token");
             if (!accessTokenCookieRemoved) {
+                if (!config.enableNewSignIn) {
+                    user.deleteCookies()
+                        .then(function () {
+                            console.debug("[FLORENCE] Deleted HTTP Cookies");
+                        })
+                        .catch(err => console.error(err));
+                }
                 console.warn(`Error trying to remove 'access_token' cookie`);
             }
             if (cookies.get("collection")) {
                 cookies.remove("collection");
             }
-            localStorage.removeItem("loggedInAs");
-            localStorage.removeItem("userType");
+            if (cookies.get("id_token")) {
+                cookies.remove("id_token");
+            }
+            removeAuthState();
             store.dispatch(userLoggedOut());
             store.dispatch(reset());
         }

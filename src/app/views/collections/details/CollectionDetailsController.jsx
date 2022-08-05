@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { push } from "react-router-redux";
 import PropTypes from "prop-types";
 import objectIsEmpty from "is-empty-object";
-import { getCollections, getIsUpdatingCollection } from "../../../config/selectors";
+import { getCollections, getEnableNewSignIn, getGroups, getIsUpdatingCollection } from "../../../config/selectors";
 import { approveCollectionRequest } from "../../../config/thunks";
 import {
     loadCollectionsSuccess,
@@ -61,6 +61,7 @@ const propTypes = {
     }),
     activePageURI: PropTypes.string,
     routes: PropTypes.arrayOf(PropTypes.object).isRequired,
+    enableCantabularJourney: PropTypes.bool,
 };
 
 export class CollectionDetailsController extends Component {
@@ -78,6 +79,7 @@ export class CollectionDetailsController extends Component {
             pendingDeletedPages: [],
             drawerIsAnimatable: false,
             drawerIsVisible: false,
+            isCantabularDataset: false,
         };
     }
 
@@ -173,8 +175,7 @@ export class CollectionDetailsController extends Component {
                     // User has closed collection details or moved to another one, so do not update state
                     return;
                 }
-
-                const mappedCollection = collectionMapper.collectionResponseToState(collection);
+                const mappedCollection = collectionMapper.collectionResponseToState(collection, this.props.groups);
                 const collectionWithPages = collectionMapper.pagesToCollectionState(mappedCollection);
 
                 // If we have no data in state yet for the collection then use this opportunity to add it.
@@ -320,6 +321,13 @@ export class CollectionDetailsController extends Component {
     };
 
     handleCollectionPageEditClick = async (page, state) => {
+        await this.getDatasetType(page.id);
+        if (page.type === "interactive") {
+            const newURL = url.resolve(`/interactives/edit/${page.id}?collection=${this.props.activeCollection.id}`);
+            this.props.dispatch(push(newURL));
+            return newURL;
+        }
+
         if (page.type === "dataset_details") {
             // This is a horrible hack to get the latest version url.
             // This could possibly be given to us from Zebedee.
@@ -344,9 +352,8 @@ export class CollectionDetailsController extends Component {
             return newURL;
         }
         if (page.type === "dataset_version") {
-            const newURL = url.resolve(
-                `/collections/${this.props.activeCollection.id}/datasets/${page.datasetID}/editions/${page.edition}/versions/${page.version}`
-            );
+            const path = `/collections/${this.props.activeCollection.id}/datasets/${page.datasetID}/editions/${page.edition}/versions/${page.version}`;
+            const newURL = url.resolve(this.props.enableCantabularJourney && this.state.isCantabularDataset ? `${path}/cantabular` : path);
             const version = this.props.activeCollection[state].find(collectionPage => {
                 if (collectionPage.type !== "dataset_version") {
                     return false;
@@ -441,6 +448,9 @@ export class CollectionDetailsController extends Component {
             }
             if (deletedPage.type === "dataset_version") {
                 return collections.removeDatasetVersion(collectionID, deletedPage.datasetID, deletedPage.edition, deletedPage.version);
+            }
+            if (deletedPage.type === "interactive") {
+                return collections.removeInteractive(collectionID, deletedPage.id);
             }
             if (this.props.enableDatasetImport) {
                 return collections.deletePageIncludingDatasetImport(collectionID, deletedPage.uri);
@@ -579,6 +589,15 @@ export class CollectionDetailsController extends Component {
         this.handleRestoreDeletedContentClose();
     };
 
+    getDatasetType = async pageID => {
+        if (pageID && pageID.includes("/")) {
+            const datasetID = pageID.split("/")[0].trim();
+            const response = await datasets.get(datasetID);
+            const type = response.next.type;
+            this.setState({ isCantabularDataset: type === "cantabular_flexible_table" || type === "cantabular_table" });
+        }
+    };
+
     renderLoadingCollectionDetails() {
         return (
             <CollectionDetails
@@ -658,6 +677,7 @@ CollectionDetailsController.propTypes = propTypes;
 
 export function mapStateToProps(state) {
     return {
+        isNewSignIn: getEnableNewSignIn(state.state),
         user: state.user,
         collections: getCollections(state.state),
         activeCollection: state.state.collections.active,
@@ -665,6 +685,8 @@ export function mapStateToProps(state) {
         activePageURI: state.routing.locationBeforeTransitions.hash.replace("#", ""),
         enableDatasetImport: state.state.config.enableDatasetImport,
         isUpdating: getIsUpdatingCollection(state.state),
+        enableCantabularJourney: state.state.config.enableCantabularJourney,
+        groups: getGroups(state.state),
     };
 }
 

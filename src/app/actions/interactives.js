@@ -1,6 +1,5 @@
 import * as types from "./actionTypes";
 import Interactives from "../utilities/api-clients/interactives";
-import { objectToQueryString } from "../utilities/utils";
 
 export function setInteractives(interactives) {
     return {
@@ -57,11 +56,11 @@ export function resetInteractiveError() {
 }
 
 export function filterInteractives(filters) {
-    const query = objectToQueryString(filters);
+    const query = `filter=${filters}`;
     return async dispatch => {
         try {
             const res = await Interactives.get(query);
-            dispatch(setInteractives(res.data.items));
+            dispatch(setInteractives(res.data));
         } catch (error) {
             dispatch(setInteractiveError(error));
         }
@@ -73,7 +72,7 @@ export function getInteractives() {
     return async dispatch => {
         try {
             const res = await Interactives.getAll();
-            dispatch(setInteractives(res.data.items));
+            dispatch(setInteractives(res.data));
         } catch (error) {
             dispatch(setInteractiveError(error));
         }

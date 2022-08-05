@@ -2,7 +2,7 @@ import mockAxios from "axios";
 import { getAll, create, destroy, update, show } from "../interactives-test";
 const fs = require("fs");
 
-const baseURL = "/interactives/v1";
+const baseURL = "/api/v1";
 
 test("Call interactives api and returns data that matches the right structure", async () => {
     jest.clearAllMocks();
@@ -111,6 +111,8 @@ test("Should create an interactive and returns the right structure", async () =>
         headers: {
             "Content-Type": "multipart/form-data",
         },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
     });
 });
 
@@ -204,6 +206,8 @@ test("Should update an interactive", async () => {
         headers: {
             "Content-Type": "multipart/form-data",
         },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
     });
 });
 

@@ -2,8 +2,8 @@
 var Florence = Florence || {
         babbageBaseUrl: window.location.origin,
         refreshAdminMenu: function () {
-            // Display a message to show users are on dev or sandpit
-            Florence.environment = isDevOrSandpit();
+            // Display a message to show users are on dev or sandbox
+            Florence.environment = isDevOrSandbox();
             Florence.showDatasetsTab = Florence.globalVars.config.enableDatasetImport;
 
             var mainNavHtml = templates.mainNav(Florence);
@@ -50,7 +50,9 @@ Florence.globalVars = {pagePath: '', activeTab: false, pagePos: '', welsh: false
 
 Florence.Authentication = {
     accessToken: function () {
-        return CookieUtils.getCookieValue("access_token");
+        var cookie = CookieUtils.getCookieValue("access_token");
+        var token = localStorage.getItem("ons_auth_state");
+        return cookie || token;
     },
     isAuthenticated: function () {
         return Florence.Authentication.accessToken() !== '';

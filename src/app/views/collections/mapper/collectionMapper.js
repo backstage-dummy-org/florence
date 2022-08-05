@@ -1,13 +1,31 @@
 import notifications from "../../../utilities/notifications";
 import log from "../../../utilities/logging/log";
 import date from "../../../utilities/date";
+import fp from "lodash/fp";
 
 /**
  * Methods for mapping between request responses and the application's state
  */
 
 export default class collectionMapper {
-    static collectionResponseToState(collection) {
+    static mapTeams(collection, allGroups) {
+        if (collection.teamsDetails) {
+            return collection.teamsDetails.map(team => ({
+                id: team.id.toString(),
+                name: team.name,
+            }));
+        } else {
+            if (allGroups) {
+                const groups = fp.get("teams", collection);
+                return fp.filter(g => {
+                    return fp.includes(g.id)(groups);
+                })(allGroups);
+            }
+            return [];
+        }
+    }
+
+    static collectionResponseToState(collection, allGroups = []) {
         try {
             const publishStates = this.publishState(collection);
             return {
@@ -34,13 +52,9 @@ export default class collectionMapper {
                 complete: collection.complete,
                 reviewed: collection.reviewed,
                 datasets: collection.datasets,
+                interactives: collection.interactives,
                 datasetVersions: collection.datasetVersions,
-                teams: collection.teamsDetails
-                    ? collection.teamsDetails.map(team => ({
-                          id: team.id.toString(),
-                          name: team.name,
-                      }))
-                    : [],
+                teams: collectionMapper.mapTeams(collection, allGroups),
                 deletes: collection.pendingDeletes,
             };
         } catch (error) {
@@ -103,10 +117,11 @@ export default class collectionMapper {
                 reviewed: mapPageToState(collection.reviewed),
             };
             const collectionWithDatasetsAndPages = this.datasetsToCollectionState(collectionWithPages);
+            const collectionWithInteractivesAndDatasetsAndPages = this.interactivesToCollectionState(collectionWithDatasetsAndPages);
             return {
-                ...collectionWithDatasetsAndPages,
-                canBeDeleted: this.collectionCanBeDeleted(collectionWithDatasetsAndPages),
-                canBeApproved: this.collectionCanBeApproved(collectionWithDatasetsAndPages),
+                ...collectionWithInteractivesAndDatasetsAndPages,
+                canBeDeleted: this.collectionCanBeDeleted(collectionWithInteractivesAndDatasetsAndPages),
+                canBeApproved: this.collectionCanBeApproved(collectionWithInteractivesAndDatasetsAndPages),
             };
         } catch (error) {
             log.event("Error mapping collection GET response to Florence's state", log.error(error));
@@ -176,6 +191,47 @@ export default class collectionMapper {
         } catch (error) {
             log.event("Error mapping collection datasets response to Florence's state", log.error(error));
             console.error("Error mapping collection datasets response to Florence's state", error);
+            return null;
+        }
+    }
+
+    static interactivesToCollectionState(collection) {
+        try {
+            const mapInteractive = interactive => ({
+                title: interactive.title,
+                type: "interactive",
+                id: interactive.id,
+                uri: `/interactive/${interactive.id}`,
+                lastEditedBy: interactive.lastEditedBy,
+                lastEditedAt: interactive.lastEditedAt,
+            });
+
+            const mapInteractives = () => {
+                let inProgress = collection.inProgress || [];
+                let complete = collection.complete || [];
+                let reviewed = collection.reviewed || [];
+
+                if (collection.interactives) {
+                    collection.interactives.forEach(interactive => {
+                        if (interactive.state === "InProgress") {
+                            inProgress.push(mapInteractive(interactive));
+                        }
+                        if (interactive.state === "Complete") {
+                            complete.push(mapInteractive(interactive));
+                        }
+                        if (interactive.state === "Reviewed") {
+                            reviewed.push(mapInteractive(interactive));
+                        }
+                    });
+                }
+
+                return { inProgress, complete, reviewed };
+            };
+
+            return { ...collection, ...mapInteractives() };
+        } catch (error) {
+            log.event("Error mapping collection interactives response to Florence's state", log.error(error));
+            console.error("Error mapping collection interactives response to Florence's state", error);
             return null;
         }
     }

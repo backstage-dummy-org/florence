@@ -71,12 +71,11 @@ describe("NavBar", () => {
                 };
                 const component = shallow(<NavBar {...props} user={authenticatedUser} />);
                 expect(component.find(Link)).toHaveLength(5);
-                expect(component.find(Link).getElements()[0].props.children).toBe("Collections")
-                expect(component.find(Link).getElements()[1].props.children).toBe("Users and access")
-                expect(component.find(Link).getElements()[2].props.children).toBe("Preview teams")
-                expect(component.find(Link).getElements()[3].props.children).toBe("Security")
-                expect(component.find(Link).getElements()[4].props.children).toBe("Sign out")
-
+                expect(component.find(Link).getElements()[0].props.children).toBe("Collections");
+                expect(component.find(Link).getElements()[1].props.children).toBe("Users and access");
+                expect(component.find(Link).getElements()[2].props.children).toBe("Preview teams");
+                expect(component.find(Link).getElements()[3].props.children).toBe("Security");
+                expect(component.find(Link).getElements()[4].props.children).toBe("Sign out");
             });
         });
 
@@ -95,20 +94,6 @@ describe("NavBar", () => {
             });
         });
 
-        describe("when enabled upload interactives", () => {
-            it("should display Interactives module link", () => {
-                const props = {
-                    ...defaultProps,
-                    user: authenticatedUser,
-                    config: {
-                        ...defaultProps.config,
-                        enableNewInteractives: true,
-                    },
-                };
-                const component = shallow(<NavBar {...props} />);
-                expect(component.find("Link[to='/florence/interactives']").exists()).toBe(true);
-            });
-        });
         describe("when on collections", () => {
             it("should display Working On: ", () => {
                 const props = {
@@ -137,8 +122,8 @@ describe("NavBar", () => {
 
             expect(component.hasClass("global-nav__list")).toBe(true);
             expect(component.find(Link)).toHaveLength(2);
-            expect(component.find(Link).getElements()[0].props.children).toBe("Collections")
-            expect(component.find(Link).getElements()[1].props.children).toBe("Sign out")
+            expect(component.find(Link).getElements()[0].props.children).toBe("Collections");
+            expect(component.find(Link).getElements()[1].props.children).toBe("Sign out");
         });
 
         describe("when on collections url", () => {

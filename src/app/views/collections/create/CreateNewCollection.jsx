@@ -56,7 +56,11 @@ const CreateNewCollection = props => {
 
     const handleTeamSelect = e => {
         if (!e) return;
-        const member = props.teams.find(team => team.id == e.target.value);
+        const member = props.teams.find(team => {
+            if (team.id === e.target.value) {
+                return true;
+            }
+        });
         setNewCollection(prevState => ({
             ...prevState,
             teams: prevState.teams.concat(member),
@@ -146,6 +150,16 @@ const CreateNewCollection = props => {
         return new Date(`${newCollection.publishDate.value} ${newCollection.publishTime.value}`).toISOString();
     };
 
+    const makeTeams = () => {
+        return newCollection.teams.map(team => {
+            // POST to group create endpoint expects: <names> in legacy, but <IDs> in new auth (isNewSignIn)
+            if (!props.isNewSignIn) {
+                return team.name;
+            }
+            return team.id;
+        });
+    };
+
     const mapStateToPostBody = () => {
         return isEnablePermissionsAPI
             ? {
@@ -159,9 +173,7 @@ const CreateNewCollection = props => {
                   name: newCollection.name.value,
                   type: newCollection.type,
                   publishDate: makePublishDate(),
-                  teams: newCollection.teams.map(team => {
-                      return team.name;
-                  }),
+                  teams: makeTeams(),
                   collectionOwner: props.user.userType,
                   releaseUri: newCollection.scheduleType === "calender-entry-schedule" ? newCollection.release.uri : null,
               };
@@ -221,7 +233,6 @@ const CreateNewCollection = props => {
             setIsSubmitting(false);
             return;
         }
-
         createCollectionRequest(mapStateToPostBody(), selectedTeams, isEnablePermissionsAPI);
         setNewCollection(EMPTY_COLLECTION);
         setIsSubmitting(false);

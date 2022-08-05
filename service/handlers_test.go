@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
+
 	"github.com/ONSdigital/florence/assets"
 	"github.com/ONSdigital/florence/config"
 	. "github.com/smartystreets/goconvey/convey"
@@ -45,23 +47,31 @@ func TestStaticFiles(t *testing.T) {
 
 	Convey("Returns 200 when asset is requested", t, func() {
 		recorder := httptest.NewRecorder()
-		request, err := http.NewRequest("GET", "/florence/dist/js/app.bundle.js", nil)
-		request.URL.RawQuery = ":uri=js/app.bundle.js"
+		req, err := http.NewRequest("GET", "/florence/dist/js/app.bundle.js", nil)
 		So(err, ShouldBeNil)
-		request.Header.Set("Accept-Language", "en")
-		staticFiles(recorder, request)
-		So(recorder.Code, ShouldEqual, 200)
+		req.Header.Set("Accept-Language", "en")
+
+		router := mux.NewRouter()
+		router.HandleFunc("/florence/dist/{uri:.*}", func(writer http.ResponseWriter, request *http.Request) {
+			staticFiles(recorder, request)
+			So(recorder.Code, ShouldEqual, 200)
+		})
+		router.ServeHTTP(recorder, req)
 	})
 
 	Convey("Returns 404 when an unrecognised asset path is given", t, func() {
 		recorder := httptest.NewRecorder()
 		rdr := bytes.NewReader([]byte(``))
-		request, err := http.NewRequest("GET", "/florence/dist/foo", rdr)
-		request.URL.RawQuery = ":uri=foo"
+		req, err := http.NewRequest("GET", "/florence/dist/foo", rdr)
 		So(err, ShouldBeNil)
-		request.Header.Set("Accept-Language", "en")
-		staticFiles(recorder, request)
-		So(recorder.Code, ShouldEqual, 404)
+		req.Header.Set("Accept-Language", "en")
+
+		router := mux.NewRouter()
+		router.HandleFunc("/florence/dist/{uri:.*}", func(writer http.ResponseWriter, request *http.Request) {
+			staticFiles(recorder, request)
+			So(recorder.Code, ShouldEqual, 404)
+		})
+		router.ServeHTTP(recorder, req)
 	})
 }
 
@@ -205,11 +215,12 @@ func TestIndexFile(t *testing.T) {
 	Convey("Environment variables are set", t, func() {
 		cfg := &config.Config{
 			SharedConfig: config.SharedConfig{
-				EnableDatasetImport:   true,
-				EnableNewSignIn:       true,
-				EnableNewUpload:       true,
-				EnableNewInteractives: true,
-				EnablePermissionsAPI:  true,
+				EnableDatasetImport:     true,
+				EnableNewSignIn:         true,
+				EnableNewUpload:         true,
+				EnableNewInteractives:   true,
+				EnablePermissionsAPI:    true,
+				EnableCantabularJourney: true,
 			},
 		}
 		getAsset = func(path string) ([]byte, error) {
@@ -228,7 +239,7 @@ func TestIndexFile(t *testing.T) {
 			So(err, ShouldBeNil)
 			html := string(body)
 			So(strings.Contains(html, "/* environment variables placeholder */"), ShouldBeFalse)
-			So(strings.Contains(html, `/* server generated shared config */ {"enableDatasetImport":true,"enableNewSignIn":true,"enableNewUpload":true,"enableNewInteractives":true,"enablePermissionsAPI":true}`), ShouldBeTrue)
+			So(strings.Contains(html, `/* server generated shared config */ {"enableDatasetImport":true,"enableNewSignIn":true,"enableNewUpload":true,"enableNewInteractives":true,"enablePermissionsAPI":true,"enableCantabularJourney":true}`), ShouldBeTrue)
 		})
 
 		Convey("Shared config written into refactored HTML contains the correct config", func() {
@@ -257,7 +268,7 @@ func TestIndexFile(t *testing.T) {
 			So(err, ShouldBeNil)
 			html := string(body)
 			So(strings.Contains(html, "/* environment variables placeholder */"), ShouldBeFalse)
-			So(strings.Contains(html, `/* server generated shared config */ {"enableDatasetImport":false,"enableNewSignIn":false,"enableNewUpload":false,"enableNewInteractives":false,"enablePermissionsAPI":false}`), ShouldBeTrue)
+			So(strings.Contains(html, `/* server generated shared config */ {"enableDatasetImport":false,"enableNewSignIn":false,"enableNewUpload":false,"enableNewInteractives":false,"enablePermissionsAPI":false,"enableCantabularJourney":false}`), ShouldBeTrue)
 
 		})
 
@@ -268,7 +279,7 @@ func TestIndexFile(t *testing.T) {
 			So(err, ShouldBeNil)
 			html := string(body)
 			So(strings.Contains(html, "/* environment variables placeholder */"), ShouldBeFalse)
-			So(strings.Contains(html, `/* server generated shared config */ {"enableDatasetImport":false,"enableNewSignIn":false,"enableNewUpload":false,"enableNewInteractives":false,"enablePermissionsAPI":false}`), ShouldBeTrue)
+			So(strings.Contains(html, `/* server generated shared config */ {"enableDatasetImport":false,"enableNewSignIn":false,"enableNewUpload":false,"enableNewInteractives":false,"enablePermissionsAPI":false,"enableCantabularJourney":false}`), ShouldBeTrue)
 		})
 
 	})

@@ -3,7 +3,7 @@ Florence
 
 The publishing platform used for the [ONS website](https://www.ons.gov.uk).
 
-![Florence screenshot](images/Florence screenshot.png)
+![Florence screenshot](images/Florence%20screenshot.png "Florence screenshot")
 
 ### Getting started
 
@@ -85,6 +85,16 @@ The following environment variables are available when running the Go server.
 For example:
 ```
 make debug BIND_ADDR=:20000
+```
+
+### Testing
+Run all tests
+```
+npm run test
+```
+Testing a single file
+```
+npm run test:file --file=<YOUR_FILE>
 ```
 ### Contributing
 

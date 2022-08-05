@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "/interactives/v1";
+const baseURL = "/api/v1";
 
 export default class Interactives {
     static getAll() {
@@ -16,6 +16,8 @@ export default class Interactives {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity,
         });
     }
 
@@ -28,6 +30,8 @@ export default class Interactives {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity,
         });
     };
 

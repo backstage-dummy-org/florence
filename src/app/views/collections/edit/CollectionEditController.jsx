@@ -22,7 +22,7 @@ import collectionMapper from "../mapper/collectionMapper";
 import { errCodes } from "../../../utilities/errorCodes";
 import { getEnableNewSignIn, getEnablePermissionsAPI, getGroups, getGroupsLoading, getCollectionAccessPolicy } from "../../../config/selectors";
 import { fetchGroupsRequest } from "../../../config/groups/thunks";
-import { loadPolicyRequest } from "../../../config/thunks";
+import ChangePasswordController from "../../new-password/changePasswordController";
 
 const propTypes = {
     name: PropTypes.string.isRequired,
@@ -82,7 +82,7 @@ export class CollectionEditController extends Component {
                     errorMsg: "",
                 },
                 publishTime: {
-                    value: date.format(this.props.publishDate, "hh:MM"),
+                    value: date.format(this.props.publishDate, "HH:MM"),
                     errorMsg: "",
                 },
             });

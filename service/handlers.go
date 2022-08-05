@@ -12,6 +12,7 @@ import (
 
 	"github.com/ONSdigital/florence/config"
 	"github.com/ONSdigital/log.go/log"
+	"github.com/gorilla/mux"
 )
 
 // generated files constants
@@ -44,7 +45,7 @@ func redirectToFlorence(w http.ResponseWriter, req *http.Request) {
 }
 
 func staticFiles(w http.ResponseWriter, req *http.Request) {
-	path := req.URL.Query().Get(":uri")
+	path := mux.Vars(req)["uri"]
 	assetPath := assetStaticRoot + path
 
 	etag, err := getAssetETag(assetPath)
@@ -172,5 +173,18 @@ func refactoredIndexFile(cfg *config.Config) http.HandlerFunc {
 		w.Header().Set(`Content-Type`, "text/html")
 		w.WriteHeader(200)
 		w.Write(b)
+	}
+}
+
+func DeleteHttpCookie() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c := &http.Cookie{
+			Name:    "access_token",
+			Value:   "",
+			Path:    "/",
+			Expires: time.Unix(0, 0),
+		}
+		http.SetCookie(w, c)
+		w.WriteHeader(http.StatusAccepted)
 	}
 }

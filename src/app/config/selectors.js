@@ -1,13 +1,15 @@
 import { createSelector } from "reselect";
 import collectionMapper from "../views/collections/mapper/collectionMapper";
-import differenceWith from "lodash/differenceWith";
 import { formatDateString } from "../utilities/formatDateString";
+import fp from "lodash/fp";
 
 export const getCollections = state => state.collections.all;
 export const getSearch = state => state.search;
 
 export const getMappedCollections = createSelector(getCollections, collections => {
-    if (!collections || collections.length === 0 || typeof collections === "string") return [];
+    if (!collections || !Array.isArray(collections)) {
+        return [];
+    }
     return collections.sort((a, b) => a.name.localeCompare(b.name)).map(collection => collectionMapper.collectionResponseToState(collection));
 });
 
@@ -33,12 +35,19 @@ export const getCollectionAccessPolicy = state => state.policy.data;
 export const getCollectionAccessPolicyLoading = state => state.policy.loading;
 export const getCollectionAccessPolicyUpdating = state => state.policy.updating;
 
-export const getGroups = state => state.groups.all;
+export const getGroups = state => (state.groups ? state.groups.all : []);
 export const getGroupsLoading = state => state.groups.isLoading;
 export const getGroup = state => state.groups.active;
 export const getGroupLoading = state => state.groups.isLoadingActive;
 export const getGroupMembersLoading = state => state.groups.isLoadingMembers;
 export const getGroupMembers = state => state.groups.members;
+export const getGroupsByCollectionID = (id, allCollections, allGroups) => {
+    const collection = fp.filter(["id", id])(allCollections);
+    const groups = fp.get("teams", fp.first(collection));
+    return fp.filter(g => {
+        return fp.includes(g.id)(groups);
+    })(allGroups);
+};
 
 export const getEnableNewSignIn = state => state.config.enableNewSignIn;
 export const getEnablePermissionsAPI = state => state.config.enablePermissionsAPI;

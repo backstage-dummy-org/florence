@@ -6,6 +6,8 @@ function mapStateToProps(state) {
     return {
         notifications: getNotifications(state.state),
         popouts: state.state.popouts,
+        user: state.user,
+        config: state.state.config,
     };
 }
 

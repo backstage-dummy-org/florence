@@ -86,24 +86,14 @@ const NavBar = props => {
                                 Publishing queue
                             </a>
                         </li>
-                        <li className="global-nav__item">
-                            <a className="global-nav__link" href="/florence/reports">
-                                Reports
-                            </a>
-                        </li>
-                        {props.config?.enableNewInteractives && (
+                        {auth.isAdminOrEditor(props.user) && (
                             <li className="global-nav__item">
-                                <Link to={`${rootPath}/interactives`} activeClassName="selected" className="global-nav__link">
-                                    Interactives
+                                <Link to={`${rootPath}/users`} activeClassName="selected" className="global-nav__link">
+                                    Users and access
                                 </Link>
                             </li>
                         )}
-                        <li className="global-nav__item">
-                            <Link to={`${rootPath}/users`} activeClassName="selected" className="global-nav__link">
-                                Users and access
-                            </Link>
-                        </li>
-                        {!props.isNewSignIn && (
+                        {!props.isNewSignIn && auth.isAdmin(props.user) && (
                             <li className="global-nav__item">
                                 <Link to={`${rootPath}/teams`} activeClassName="selected" className="global-nav__link">
                                     Teams
@@ -112,7 +102,7 @@ const NavBar = props => {
                         )}
                     </>
                 )}
-                {auth.isAdmin(props.user) && props.isNewSignIn &&
+                {auth.isAdmin(props.user) && props.isNewSignIn && (
                     <>
                         <li className="global-nav__item">
                             <Link to={`${rootPath}/groups`} activeClassName="selected" className="global-nav__link">
@@ -125,7 +115,7 @@ const NavBar = props => {
                             </Link>
                         </li>
                     </>
-                }
+                )}
                 <li className="global-nav__item">
                     <Link to={url.resolve("/login")} onClick={() => user.logOut()} className="global-nav__link">
                         Sign out
@@ -138,7 +128,7 @@ const NavBar = props => {
     const regex = new RegExp(`${props.rootPath}/collections/[\\w|-]*/preview`, "g");
     const isViewingPreview = regex.test(props.location.pathname);
     return (
-        <ul className="global-nav__list">
+        <ul className="global-nav__list" data-testid="navbar">
             {isViewingPreview && <PreviewNav />}
             {isViewingPreview && (
                 <li className="global-nav__item">

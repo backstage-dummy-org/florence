@@ -1,67 +1,55 @@
-import React, { Component, useEffect, useMemo, useState } from "react";
-import { hasValidAuthToken } from "../../utilities/hasValidAuthToken";
+import React, { Component, useEffect, useState } from "react";
 import log from "../../utilities/logging/log";
-import notifications from "../../utilities/notifications";
 import ping from "../../utilities/api-clients/ping";
-import sessionManagement from "../../utilities/sessionManagement";
 import user from "../../utilities/api-clients/user";
 import Notifications from "../notifications";
 import NavBar from "../../components/navbar";
 import Popouts from "../popouts/Popouts";
+import { useGetPermissions, useUpdateTimers } from "../../config/user/userHooks";
+import { getAuthState } from "../../utilities/auth";
+import fp from "lodash/fp";
+
+import { useDispatch } from "react-redux";
 
 const Layout = props => {
-    const [isCheckingAuthentication, setIsCheckingAuthentication] = useState(null);
-    useMemo(() => {
-        setIsCheckingAuthentication(true);
-        hasValidAuthToken().then(isValid => {
-            if (isValid) {
-                const email = localStorage.getItem("loggedInAs");
-                if (!email) {
-                    user.logOut();
-                    setIsCheckingAuthentication(false);
-                    console.warn(`Unable to find item 'loggedInAs' from local storage`);
-                    return;
-                }
-                user.getPermissions()
-                    .then(userType => {
-                        user.setUserState(userType);
-                        setIsCheckingAuthentication(false);
-                    })
-                    .catch(error => {
-                        setIsCheckingAuthentication(false);
-                        notifications.add({
-                            type: "warning",
-                            message: "Unable to start Florence due to an error getting your account's permissions. Please try refreshing Florence.",
-                            autoDismiss: 8000,
-                            isDismissable: true,
-                        });
-                        log.event("Error getting a user's permissions on startup", log.error(error));
-                        console.error("Error getting a user's permissions on startup", error);
-                    });
+    const dispatch = useDispatch();
+    let authState = getAuthState();
+    const sessionTimerIsActive = fp.get("user.sessionTimer.active")(props);
+    const [isCheckingAuthentication, setIsCheckingAuthentication] = useState(false);
+    const [shouldUpdateAccessToken, setShouldUpdateAccessToken] = useState(false);
+    // Get Permissions
+    const userPermissions = useGetPermissions(authState, setShouldUpdateAccessToken);
+    // Check timers & update if required
+    useUpdateTimers(props, sessionTimerIsActive, dispatch);
+    // Update store with permissions
+    useEffect(() => {
+        setIsCheckingAuthentication(false);
+        if (userPermissions) {
+            user.setUserState(userPermissions);
+            const email = fp.get("email")(getAuthState());
+            if (!email) {
+                user.logOut();
+                setIsCheckingAuthentication(false);
+                console.warn(`Unable to find auth token in local storage`);
                 return;
             }
-            setIsCheckingAuthentication(false);
-        });
-    }, []);
+        }
+    }, [userPermissions, isCheckingAuthentication]);
 
     useEffect(() => {
         log.initialise();
-
         window.setInterval(() => {
             ping();
         }, 10000);
-
-        if (props.location.pathname !== "/florence/login" && props.enableNewSignIn) {
-            sessionManagement.startSessionExpiryTimers();
-        }
     }, []);
 
-    if (isCheckingAuthentication)
+    if (isCheckingAuthentication) {
         return (
             <div className="grid grid--align-center grid--align-self-center grid--full-height">
                 <div className="loader loader--large loader--dark" />
             </div>
         );
+    }
 
     return (
         <React.StrictMode>
