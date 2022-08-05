@@ -5,7 +5,6 @@ import PropTypes from "prop-types";
 import dateFormat from "dateformat";
 import CollectionEdit from "./CollectionEdit";
 import url from "../../../utilities/url";
-import teams from "../../../utilities/api-clients/teams";
 import log from "../../../utilities/logging/log";
 import notifications from "../../../utilities/notifications";
 import {
@@ -13,8 +12,8 @@ import {
     loadCollectionsSuccess,
     updatePagesInActiveCollection,
     updateTeamsInActiveCollection,
+    updatePolicy,
 } from "../../../config/actions";
-import { loadGroupsSuccess } from "../../../config/groups/actions";
 import collectionValidation from "../validation/collectionValidation";
 import collections from "../../../utilities/api-clients/collections";
 import date from "../../../utilities/date";
@@ -22,7 +21,7 @@ import collectionMapper from "../mapper/collectionMapper";
 import { errCodes } from "../../../utilities/errorCodes";
 import { getEnableNewSignIn, getEnablePermissionsAPI, getGroups, getGroupsLoading, getCollectionAccessPolicy } from "../../../config/selectors";
 import { fetchGroupsRequest } from "../../../config/groups/thunks";
-import ChangePasswordController from "../../new-password/changePasswordController";
+import { loadPolicyRequest } from "../../../config/thunks";
 
 const propTypes = {
     name: PropTypes.string.isRequired,
@@ -65,15 +64,14 @@ export class CollectionEditController extends Component {
                 errorMsg: "",
             },
             policy: null,
-            allTeams: null,
-            allTeams: props.allTeams
+            allTeams: props.allTeams,
         };
     }
 
     componentDidMount() {
         this.props.dispatch(fetchGroupsRequest(this.props.isNewSignIn));
 
-        if(this.props.isNewSignIn) this.props.dispatch(loadPolicyRequest(this.props.id));
+        if (this.props.isNewSignIn) this.props.dispatch(loadPolicyRequest(this.props.id));
 
         if (this.props.publishType === "scheduled" && this.props.publishDate) {
             this.setState({
@@ -88,10 +86,11 @@ export class CollectionEditController extends Component {
             });
         }
     }
+
     componentDidUpdate(prevProps) {
         // Typical usage (don't forget to compare props):
         if (this.props.allTeams !== prevProps.allTeams) {
-            setState({allTeams: this.availableTeams(this.props.allTeams, this.props.policy)});
+            this.setState({ allTeams: this.availableTeams(this.props.allTeams, this.props.policy) });
         }
     }
 
@@ -106,7 +105,7 @@ export class CollectionEditController extends Component {
     };
 
     handleAddTeam = teamID => {
-        const currentTeams = this.props.isEnablePermissionsAPI ? this.selectedTeams() : this.state.updatedTeamsList || this.props.teams || []
+        const currentTeams = this.state.updatedTeamsList || this.props.teams || [];
 
         if (!teamID) {
             return;
@@ -125,7 +124,7 @@ export class CollectionEditController extends Component {
         if (!selectedTeam) {
             const notification = {
                 type: "warning",
-                message: `Unable to add the team '${teamID}' to this collection because an unexpected error occurred`,
+                message: `Unable to add the team '${teamID}' to this collection because an unexpected error occured`,
                 autoDismiss: 4000,
                 isDismissable: true,
             };
@@ -137,7 +136,7 @@ export class CollectionEditController extends Component {
         this.setState(state => {
             const newState = { ...state };
             const updatedTeamsList = [...currentTeams, selectedTeam];
-            const allTeams = props.allTeams.map(team => ({
+            const allTeams = state.allTeams.map(team => ({
                 ...team,
                 disabled: team.id == selectedTeam.id ? true : team.disabled,
             }));
@@ -271,10 +270,6 @@ export class CollectionEditController extends Component {
             isSavingEdits: true,
         });
 
-        if (this.props.isEnablePermissionsAPI) {
-            collection.updatePolicy(this.props.id, this.state.policy).then(response => dispatch());
-        }
-
         collections
             .update(this.props.id, this.mapEditsToAPIRequestBody({ ...this.state }))
             .then(response => {
@@ -299,6 +294,14 @@ export class CollectionEditController extends Component {
                 this.props.dispatch(updateTeamsInActiveCollection(activeCollection.teams));
                 this.props.dispatch(loadCollectionsSuccess(allCollections));
                 this.props.dispatch(push(url.resolve("../")));
+
+                const notification = {
+                    type: "positive",
+                    message: `Collection updated successfully`,
+                    isDismissable: true,
+                    autoDismiss: 4000,
+                };
+                notifications.add(notification);
             })
             .catch(error => {
                 this.setState({
@@ -375,11 +378,7 @@ export class CollectionEditController extends Component {
     };
 
     teamsHaveChanged(state) {
-        if (state.addedTeams.size > 0 || state.removedTeams.size > 0) {
-            return true;
-        }
-
-        return false;
+        return state.addedTeams.size > 0 || state.removedTeams.size > 0;
     }
 
     publishDateHasChanged(state) {
@@ -427,33 +426,18 @@ export class CollectionEditController extends Component {
     }
 
     availableTeams = (teams, policy) => {
-        console.log("availableTeams", teams);
         if (teams?.length === 0) return [];
 
-        const selectedGroups = policy?.entities.map(entity => entity.split("/")[1]);
-        const allTeams =
-            selectedGroups.length === 0
-                ? teams
-                : teams.map(team => ({
-                      ...team,
-                      disabled: selectedGroups.includes(team.id),
-                  }));
-        this.setState(state => ({ ...state, allTeams }));
-    };
-
-    selectedTeams = () => {
-        if (!this.props.allTeams) return []; // there will be no teams selected
-        if (this.props.isEnablePermissionsAPI) {
-            if (!this.props.policy?.entities) return [];
-            const selectedGroups = this.props.policy?.entities.map(entity => entity.split("/")[1]);
-            return selectedGroups ? this.props.allTeams.filter(team => selectedGroups.some(id => id === team.id)) : [];
-        } else {
-            return this.state.updatedTeamsList ? this.state.updatedTeamsList : this.props.teams; // this is temporary copied from what was here before will be removed when before migrated
-        }
+        const selectedGroups = policy?.entities.map(entity => entity.split("/")[1]) || [];
+        return selectedGroups.length === 0
+            ? teams
+            : teams.map(team => ({
+                  ...team,
+                  disabled: selectedGroups.includes(team.id),
+              }));
     };
 
     render() {
-        const selectedGroups = this.selectedTeams();
         return (
             <CollectionEdit
                 {...this.props}
@@ -475,7 +459,7 @@ export class CollectionEditController extends Component {
                 publishDateErrorMsg={this.state.publishDate.errorMsg}
                 publishTime={this.state.publishTime.value}
                 publishTimeErrorMsg={this.state.publishTime.errorMsg}
-                teams={selectedGroups}
+                teams={this.state.updatedTeamsList || this.props.teams || []}
                 allTeams={this.props.allTeams}
                 isFetchingAllTeams={this.state.isFetchingAllTeams}
                 isSavingEdits={this.state.isSavingEdits}
@@ -497,7 +481,7 @@ export function mapStateToProps(state) {
         isEnablePermissionsAPI: getEnablePermissionsAPI(state.state),
         allTeams: getGroups(state.state),
         loadingTeams: getGroupsLoading(state.state),
-        policy: getCollectionAccessPolicy(state.state)
+        policy: getCollectionAccessPolicy(state.state),
     };
 }
 

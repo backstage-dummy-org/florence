@@ -1,4 +1,6 @@
 import * as types from "./constants";
+import collections from "../utilities/api-clients/collections";
+import notifications from "../utilities/notifications";
 
 export function reset() {
     return {
@@ -461,5 +463,25 @@ export function loadPolicyProgress() {
 export function loadPolicyFailure() {
     return {
         type: types.LOAD_POLICY_FAILURE,
+    };
+}
+
+export function updatePolicy(collectionId, policies) {
+    return async () => {
+        try {
+            await collections.updatePolicy(collectionId, policies);
+        } catch (error) {
+            let message = "";
+            if (error.body) {
+                message = error.body;
+            }
+            const notification = {
+                type: "warning",
+                message: `Error updating policies ${message}.`,
+                isDismissable: true,
+                autoDismiss: 4000,
+            };
+            notifications.add(notification);
+        }
     };
 }
