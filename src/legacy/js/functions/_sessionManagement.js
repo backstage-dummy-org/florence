@@ -103,15 +103,6 @@ function removeInteractionMonitoring() {
 
 function warnRefreshSoonExpire() {
     removeInteractionMonitoring();
-    sweetAlert({
-        type: "warning",
-        title: "Sorry, you need to sign back in again",
-        text: "This is because you have been signed in for the maximum amount of time possible. Please save your work and sign back in to continue using Florence.",
-        confirmButtonText: "Ok"
-    }, function () {
-        // One final refresh before it expires to give the user as much time as possible to save their work
-        refreshSession();
-    });
 }
 
 function removeWarnings() {
@@ -126,12 +117,6 @@ function refreshSession() {
         if (error != null) {
             console.error(error);
         }
-        sweetAlert({
-            type: "warning",
-            title: "An unexpected error has occurred when extending the users session",
-            text: "Please sign out and back in",
-            confirmButtonText: "Ok"
-        })
     };
     if (Florence.globalVars.config.enableNewSignIn) {
         // If enableNewSignIn then update the session timers
