@@ -82,8 +82,6 @@ export default class sessionManagement {
             updateAuthState({ refresh_expiry_time: refreshExpiryTime });
             // Timer to start monitoring user interaction to add a final extra amount of time to their session
             this.startExpiryTimer("refreshTimerPassive", refreshExpiryTime, this.timeOffsets.passiveRenewal, this.monitorInteraction);
-            // Timer to notify user they are on their last two minutes of using Florence and will need to sign out and back in
-            this.startExpiryTimer("refreshTimerInvasive", refreshExpiryTime, this.timeOffsets.invasiveRenewal, this.warnRefreshSoonExpire);
         }
     }
 
@@ -189,13 +187,6 @@ export default class sessionManagement {
             if (error != null) {
                 console.error(error);
             }
-            const notification = {
-                type: "warning",
-                message: errorCodes.REFRESH_SESSION_ERROR,
-                isDismissable: true,
-                autoDismiss: 20000,
-            };
-            notifications.add(notification);
         };
         const refresh_expiry_time = fp.get("refresh_expiry_time")(getAuthState());
         if (config.enableNewSignIn) {
