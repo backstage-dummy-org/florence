@@ -14,5 +14,5 @@ spec:
   lifecycle: production
   owner: "digital-publishing"
   dependsOn: 
-    - zebedee
+    - component:zebedee
   system: ons-website
