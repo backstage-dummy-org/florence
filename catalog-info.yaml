@@ -13,5 +13,6 @@ spec:
   type: service
   lifecycle: production
   owner: "digital-publishing"
-  dependsOn: zebedee
+  dependsOn: 
+    - zebedee
   system: ons-website
