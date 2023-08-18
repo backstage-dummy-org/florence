@@ -4,6 +4,8 @@ metadata:
   title: "Florence"
   name: "florence"
   description: "The publishing platform used by the ONS website"
+  tags:
+    - javascript
   annotations:
     github.com/project-slug: backstage-dummy-org/florence
     backstage.io/techdocs-ref: dir:.
@@ -11,3 +13,5 @@ spec:
   type: service
   lifecycle: production
   owner: "digital-publishing"
+  system: ons-website
+  
